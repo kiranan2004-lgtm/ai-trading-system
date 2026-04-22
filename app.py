@@ -1,8 +1,11 @@
 import streamlit as st
 import pandas as pd
-import joblib
 import numpy as np
 import matplotlib.pyplot as plt
+
+from src.preprocessing import load_data
+from src.features import create_features
+from src.model import train_model
 from risk import calculate_risk
 
 # -----------------------
@@ -11,9 +14,16 @@ from risk import calculate_risk
 st.set_page_config(page_title="AI Trading System", layout="wide")
 
 # -----------------------
-# LOAD MODEL
+# LOAD MODEL (TRAIN ON CLOUD)
 # -----------------------
-model = joblib.load("models/model.pkl")
+@st.cache_resource
+def get_model():
+    df = load_data()
+    df = create_features(df)
+    model = train_model(df)
+    return model
+
+model = get_model()
 
 # -----------------------
 # TITLE
@@ -41,14 +51,12 @@ with col1:
 
 with col2:
     st.subheader("📊 Instructions")
-    st.info(
-        "Enter trade details and click **Analyze Trade** to see prediction and risk."
-    )
+    st.info("Enter trade details and click **Analyze Trade** to see results.")
 
 st.divider()
 
 # -----------------------
-# BUTTON
+# BUTTON ACTION
 # -----------------------
 if st.button("🚀 Analyze Trade"):
 
@@ -78,7 +86,7 @@ if st.button("🚀 Analyze Trade"):
     df['rolling_pnl'] = 0
 
     # -----------------------
-    # PREDICT
+    # PREDICTION
     # -----------------------
     risk_score, prob = calculate_risk(df, model)
 
@@ -96,7 +104,7 @@ if st.button("🚀 Analyze Trade"):
     with col2:
         st.metric("Risk Score", f"{round(risk_score[0], 2)} / 100")
 
-    # Risk bar
+    # Progress bar
     st.progress(min(int(risk_score[0]) / 100, 1.0))
 
     # Decision
@@ -108,21 +116,17 @@ if st.button("🚀 Analyze Trade"):
         st.error("❌ High Risk → Avoid Trade")
 
     # -----------------------
-    # CHART SECTION
+    # CHART
     # -----------------------
     st.subheader("📊 Trade Position vs Market")
 
-    # Simulated historical data
     sample_size = 200
     historical_prob = np.random.uniform(0.2, 0.9, sample_size)
     historical_risk = (1 - historical_prob) * 100 + np.random.normal(0, 5, sample_size)
 
     fig, ax = plt.subplots()
 
-    # Historical points
     ax.scatter(historical_prob, historical_risk)
-
-    # Current trade point
     ax.scatter(prob[0], risk_score[0], marker='X')
 
     ax.set_xlabel("Profit Probability")
@@ -144,6 +148,6 @@ if st.button("🚀 Analyze Trade"):
         st.warning("⚖️ Balanced trade — moderate outcome expected")
 
     if emotion == "Greed":
-        st.write("⚠️ Market shows **Greed** — higher chance of risky trades.")
+        st.write("⚠️ Market shows **Greed** — higher risk behavior.")
     else:
         st.write("😨 Market shows **Fear** — safer but slower growth.")

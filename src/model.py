@@ -43,14 +43,4 @@ def train_model(df):
 
     model.fit(X, y)
 
-    # Save model
-    base_dir = os.path.dirname(os.path.dirname(__file__))
-    model_dir = os.path.join(base_dir, "models")
-    os.makedirs(model_dir, exist_ok=True)
-
-    model_path = os.path.join(model_dir, "model.pkl")
-    joblib.dump(model, model_path)
-
-    print("Model saved at:", model_path)
-
     return model
