@@ -3,9 +3,8 @@
 An end-to-end **Machine Learning + Data Science project** that predicts trade profitability and calculates a dynamic **risk score** using historical trading data and market sentiment.
 
 ---
-
 ## 🚀 Live Demo
-👉 [Add your deployed Streamlit link here]
+👉 https://ai-trading-system-4255n5k8nfgsz4vfavcpp7.streamlit.app
 
 ---
 
